@@ -58,7 +58,7 @@ class Study {
     var images = [];
     for (var j = 0; j < d; j++) { // loop over image
       var sliceSize = w * h * (maskHeader.numBitsPerVoxel/8);
-      images.push(new Int16Array(maskData[i].slice(j*sliceSize, (j+1)*sliceSize)));
+      images.push(new Int16Array(maskData.slice(j*sliceSize, (j+1)*sliceSize)));
     }
     this.mask.set(seriesIndex, new Series(w, h, d, maskHeader.description, images));
   }
