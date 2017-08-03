@@ -88,6 +88,7 @@ function readNifti(data) {
 
 var displayWindow = .015;
 var displayLevel = .505;
+var showMask = true;
 
 function launch() {
   // called after all image files and shaders are loaded
@@ -302,9 +303,9 @@ function mapMouseToUnitPlane(sx, sy) {
 
         mouseInfo.buttonDown[event.button] = true;
         console.log("Button " + event.button + " pressed.");
-        updateUniforms.u_clicked = 1.0;
-        updateUniforms.u_c2 = [1.0, 1.0, 1.0];
-        updateUniforms.u_c1 = [0.1, 1.0, 0.1];
+        if (event.button == 1) {
+          showMask = !showMask;
+        }
         event.preventDefault();
         event.stopPropagation();
         //console.log(updateUniforms.center);
