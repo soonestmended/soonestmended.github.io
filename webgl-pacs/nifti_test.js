@@ -22,7 +22,8 @@ function loadURL(url, cb) {
   xhttp.send();
 }
 
-var texturesArray = []
+var texturesArray = [];
+var maskTexturesArray = [];
 var drawUniforms;
 
 function loadFile(filename, cb) {
@@ -98,8 +99,11 @@ function launch() {
   argmap.set('imageData', [headerImagePair[1]]);
 
   study = new Study(argmap);
+  var maskHeaderImagePair = readNifti(maskNiftiData);
+  study.addMaskFromNifti(0, maskHeaderImagePair[0], maskHeaderImagePair[1]);
 
   texturesArray = study.to2DTextures();
+  maskTexturesArray = study.maskTo2DTextures();
 
   // create draw uniforms and bufferInfo
 
@@ -108,6 +112,13 @@ function launch() {
     u_tex: texturesArray[seriesIndex][sliceIndex],
     u_wl: [displayWindow, displayLevel],
   };
+
+  if (study.mask.has(seriesIndex) && showMask) {
+    drawUniforms.u_maskTex = maskTexturesArray[seriesIndex][sliceIndex];
+  }
+  else {
+    drawUniforms.u_maskTex = noMaskTexture;
+  }
 
   requestAnimationFrame(render);
 }
@@ -129,6 +140,7 @@ if (!gl.getExtension("OES_element_index_uint")) {
 //}, function(err, tex, img) {checkLoaded();});
 
 var study = null;
+
 var seriesIndex = 0;
 var sliceIndex = 0;
 /*
@@ -158,6 +170,16 @@ var drawArrays = {
   position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0],
   texcoord: [0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0],
 }
+
+var clearPixel = twgl.createAugmentedTypedArray(4, 1);
+clearPixel.push([0.0, 0.0, 0.0, 1.0]);
+var noMaskTexture = twgl.createTexture(gl, {
+  min: gl.NEAREST,
+  mag: gl.NEAREST,
+  width: 1,
+  height: 1,
+  src: clearPixel,
+});
 
 var drawBufferInfo = twgl.createBufferInfoFromArrays(gl, drawArrays);
 
@@ -192,15 +214,14 @@ function checkLoaded() {
   if (stuffToLoad == 0) launch();
 }
 
-
-
 var niftiData = null;
+var maskNiftiData = null;
 
-var stuffToLoad = 3; // shaders plus one texture above
+var stuffToLoad = 4; // shaders plus one texture above
 loadURL("VS.glsl", function(xhttp) {VS = xhttp.responseText; checkLoaded();});
 loadURL("FS.glsl", function(xhttp) {FS = xhttp.responseText; checkLoaded();});
 loadFile("r_TCGA-30-1-FLAIR-1-M.nii.gz", function(result) {niftiData = result; checkLoaded();});
-
+loadFile("mask_wholetumor_3D.nii.gz", function(result) {maskNiftiData = result; checkLoaded();});
 
 // Event handlers below
 
