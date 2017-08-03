@@ -43,7 +43,7 @@ class Study {
       var tex = [];
       for (let img of s.images) {
         var texData = twgl.primitives.createAugmentedTypedArray(4, s.width * s.height); // Default Float32 array
-        if (img instanceof Uint16Array) {
+        if (img instanceof Int16Array) {
           for (var i = 0; i < s.width * s.height; i++) {
             // convert signed short to float
             var fv = (img[i] + 32768.) / 65536.;
