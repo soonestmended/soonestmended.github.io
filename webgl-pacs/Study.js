@@ -77,6 +77,9 @@ class Study {
         if (img instanceof Int16Array) {
           for (var j = 0; j < s.width * s.height; j++) {
             // convert signed short to float
+            if (img[j] > 40000) {
+              console.log(img[j]);
+            }
             var fv = (img[j] + 32768.) / 65536.;
             texData.push([.2, .2, fv, 0.5]);
           }
