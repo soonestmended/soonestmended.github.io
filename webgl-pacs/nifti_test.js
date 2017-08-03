@@ -91,7 +91,7 @@ var displayLevel = .5;
 function launch() {
   // called after all image files and shaders are loaded
   programInfo = twgl.createProgramInfo(gl, [VS, FS]);
-  headerImagePair = readNifti(niftiData);
+  var headerImagePair = readNifti(niftiData);
   var argmap = new Map();
   argmap.set('headers', [headerImagePair[0]]);
   argmap.set('imageData', [headerImagePair[1]]);
