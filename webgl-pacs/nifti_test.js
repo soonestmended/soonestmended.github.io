@@ -312,7 +312,7 @@ function mapMouseToUnitPlane(sx, sy) {
 
         mouseInfo.buttonDown[event.button] = true;
         console.log("Button " + event.button + " pressed.");
-        if (event.button == 1) {
+        if (event.button == 2) {
           showMask = !showMask;
         }
         event.preventDefault();
