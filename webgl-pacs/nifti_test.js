@@ -82,7 +82,7 @@ function readNifti(data) {
   else {
     console.log("Not NIFTI data.");
   }
-  return new ImageVolume(niftiHeader, niftiImage);
+  return [niftiHeader, niftiImage];
 }
 
 var displayWindow = .05;
@@ -91,29 +91,14 @@ var displayLevel = .5;
 function launch() {
   // called after all image files and shaders are loaded
   programInfo = twgl.createProgramInfo(gl, [VS, FS]);
+  headerImagePair = readNifti(niftiData);
+  var argmap = new Map();
+  argmap.set('headers', [headerImagePair[0]]);
+  argmap.set('imageData', [headerImagePair[1]]);
 
-  studyData = readNifti(niftiData);
+  study = new Study(argmap);
 
-  for (let img of studyData.images) {
-    
-    var texData = twgl.primitives.createAugmentedTypedArray(4, studyData.width * studyData.height); // Default Float32 array
-
-    for (var i = 0; i < studyData.width * studyData.height; i++) {
-      // convert signed short to float
-      var fv = (img[i] + 32768.) / 65536.;
-
-      texData.push([fv, fv, fv, 1.0]);
-    }
-
-    console.log("W: " + studyData.width + "\tH: " + studyData.height + "\t random val: " + texData[54]);
-    textures.push(twgl.createTexture(gl, {
-      min: gl.NEAREST,
-      mag: gl.NEAREST,
-      width: studyData.width,
-      height: studyData.height,
-      src: texData,
-    }));
-  }
+  textures = study.to2DTextures();
 
   // create draw uniforms and bufferInfo
 
@@ -122,7 +107,6 @@ function launch() {
     u_tex: textures[0],
     u_wl: [displayWindow, displayLevel],
   };
-
 
   requestAnimationFrame(render);
 }
@@ -167,7 +151,6 @@ for (var s = 0; s < 32; s++) {
 }
 
 */
-
 
 var drawArrays = {
   position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0],
@@ -280,6 +263,7 @@ function mapMouseToUnitPlane(sx, sy) {
             var dy = mouseInfo.curPos.y - mouseInfo.lastPos.y;
             displayWindow += dx * .0001;
             displayLevel += dy * .0001;
+            console.log("w: " + displayWindow + "\tl: " + displayLevel);
         }
         event.preventDefault();
         event.stopPropagation();
