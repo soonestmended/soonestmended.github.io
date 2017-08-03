@@ -188,6 +188,15 @@ function render(time) {
   time *= 0.0001;
 
   drawUniforms.u_tex = texturesArray[seriesIndex][sliceIndex];
+  
+// apply mask, maybe.
+  if (study.mask.has(seriesIndex) && showMask) {
+    drawUniforms.u_maskTex = maskTexturesArray[seriesIndex][sliceIndex];
+  }
+  else {
+    drawUniforms.u_maskTex = noMaskTexture;
+  }
+
   drawUniforms.u_wl = [displayWindow, displayLevel];
   
   // twgl.bindFramebufferInfo(gl, updateFBI);
