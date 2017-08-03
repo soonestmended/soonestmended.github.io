@@ -11,7 +11,7 @@ class Series {
 class Study {
   constructor(argmap) {
     if (argmap.get('type') == 'nifti') {
-      initFromNiftis(argmap);
+      this.initFromNiftis(argmap);
     }
   }
 
