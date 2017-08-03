@@ -86,7 +86,7 @@ function readNifti(data) {
   return [niftiHeader, niftiImage];
 }
 
-var displayWindow = .015;
+var displayWindow = .01;
 var displayLevel = .505;
 var showMask = true;
 
