@@ -104,7 +104,7 @@ function launch() {
   // create draw uniforms and bufferInfo
 
   drawUniforms = {
-    u_resolution: [studyData.width, studyData.height],
+    u_resolution: [gl.canvas.width, gl.canvas.height],
     u_tex: textures[0],
     u_wl: [displayWindow, displayLevel],
   };
