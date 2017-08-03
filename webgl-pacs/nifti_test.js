@@ -22,7 +22,7 @@ function loadURL(url, cb) {
   xhttp.send();
 }
 
-var textures = []
+var texturesArray = []
 var drawUniforms;
 
 function loadFile(filename, cb) {
@@ -43,7 +43,7 @@ function loadFile(filename, cb) {
   }
   oReq.send();
 }
-
+/*
 class ImageVolume {
   constructor(nHeader, nImage) {
     this.width = nHeader.dims[1];
@@ -55,7 +55,7 @@ class ImageVolume {
       this.images.push(new Int16Array(nImage.slice(i*sliceSize, (i+1)*sliceSize)));
     }
   }
-}
+}*/
 
 function readNifti(data) {
   var niftiHeader = null, niftiImage = null, niftiExt = null;
@@ -99,13 +99,13 @@ function launch() {
 
   study = new Study(argmap);
 
-  textures = study.to2DTextures();
+  texturesArray = study.to2DTextures();
 
   // create draw uniforms and bufferInfo
 
   drawUniforms = {
     u_resolution: [gl.canvas.width, gl.canvas.height],
-    u_tex: textures[0],
+    u_tex: texturesArray[seriesIndex][sliceIndex],
     u_wl: [displayWindow, displayLevel],
   };
 
@@ -129,6 +129,7 @@ if (!gl.getExtension("OES_element_index_uint")) {
 //}, function(err, tex, img) {checkLoaded();});
 
 var study = null;
+var seriesIndex = 0;
 var sliceIndex = 0;
 /*
 for (var i = 0; i < 32; i++) {
@@ -163,7 +164,7 @@ var drawBufferInfo = twgl.createBufferInfoFromArrays(gl, drawArrays);
 function render(time) {
   time *= 0.0001;
 
-  drawUniforms.u_tex = textures[sliceIndex];
+  drawUniforms.u_tex = texturesArray[seriesIndex][sliceIndex];
   drawUniforms.u_wl = [displayWindow, displayLevel];
   
   // twgl.bindFramebufferInfo(gl, updateFBI);
@@ -215,7 +216,7 @@ function mapMouseToUnitPlane(sx, sy) {
         event = event || window.event;
         if (event.deltaY > 0) {
             sliceIndex++;
-            if (sliceIndex == 32) {
+            if (sliceIndex == study.series[seriesIndex].depth) {
               sliceIndex--;
             }
         }
