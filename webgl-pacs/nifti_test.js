@@ -93,6 +93,7 @@ function launch() {
   programInfo = twgl.createProgramInfo(gl, [VS, FS]);
   var headerImagePair = readNifti(niftiData);
   var argmap = new Map();
+  argmap.set('type', 'nifti');
   argmap.set('headers', [headerImagePair[0]]);
   argmap.set('imageData', [headerImagePair[1]]);
 
