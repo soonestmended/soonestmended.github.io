@@ -15,5 +15,6 @@ void main() {
     float scale = 1.0 / u_wl.x;
 
 	vec4 dataColor = clamp(vec4((raw_data.xyz - vec3(offset)) * vec3(scale), 1.0), 0.0, 1.0);
-	gl_FragColor = mix(dataColor, mask_data, 1.0 - mask_data.w);
+	//gl_FragColor = mix(dataColor, mask_data, 1.0 - mask_data.w);
+	gl_FragColor = vec4(mask_data.xyz, 1.0);
 }
