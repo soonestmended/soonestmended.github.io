@@ -221,7 +221,7 @@ var stuffToLoad = 4; // shaders plus one texture above
 loadURL("VS.glsl", function(xhttp) {VS = xhttp.responseText; checkLoaded();});
 loadURL("FS.glsl", function(xhttp) {FS = xhttp.responseText; checkLoaded();});
 loadFile("r_TCGA-30-1-FLAIR-1-M.nii.gz", function(result) {niftiData = result; checkLoaded();});
-loadFile("mask_wholetumor_3D.nii.gz", function(result) {maskNiftiData = result; checkLoaded();});
+loadFile("mask_wholetumor_3d.nii.gz", function(result) {maskNiftiData = result; checkLoaded();});
 
 // Event handlers below
 
