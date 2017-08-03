@@ -128,7 +128,7 @@ if (!gl.getExtension("OES_element_index_uint")) {
 //    src: "/code/webgl/particle.png"
 //}, function(err, tex, img) {checkLoaded();});
 
-var studyData = [];
+var study = null;
 var sliceIndex = 0;
 /*
 for (var i = 0; i < 32; i++) {
