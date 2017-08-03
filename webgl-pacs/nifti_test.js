@@ -85,8 +85,8 @@ function readNifti(data) {
   return [niftiHeader, niftiImage];
 }
 
-var displayWindow = .05;
-var displayLevel = .5;
+var displayWindow = .015;
+var displayLevel = .505;
 
 function launch() {
   // called after all image files and shaders are loaded
