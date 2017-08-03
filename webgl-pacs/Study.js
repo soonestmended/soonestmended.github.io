@@ -31,7 +31,7 @@ class Study {
       var d = header.dims[3];
       for (var j = 0; j < d; j++) { // loop over image
         var sliceSize = w * h * (header.numBitsPerVoxel/8);
-        images.push(new Int16Array(nImage.slice(j*sliceSize, (j+1)*sliceSize)));
+        images.push(new Int16Array(nImages[i].slice(j*sliceSize, (j+1)*sliceSize)));
       }
       this.series.push(new Series(w, h, d, header.description, images));
     }
