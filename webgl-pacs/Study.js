@@ -72,7 +72,7 @@ class Study {
       }
       var tex = [];
       var s = this.mask.get(i);
-      for (let img of s) {
+      for (let img of s.images) {
         var texData = twgl.primitives.createAugmentedTypedArray(4, s.width * s.height); // Default Float32 array
         if (img instanceof Int16Array) {
           for (var j = 0; j < s.width * s.height; j++) {
