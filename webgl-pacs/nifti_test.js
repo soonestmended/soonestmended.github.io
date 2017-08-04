@@ -173,7 +173,7 @@ var drawArrays = {
 }
 
 var clearPixel = twgl.primitives.createAugmentedTypedArray(4, 1);
-clearPixel.push([0.0, 0.0, 0.0, 1.0]);
+clearPixel.push([0.0, 0.0, 0.0, 0.0]);
 var noMaskTexture = twgl.createTexture(gl, {
   min: gl.NEAREST,
   mag: gl.NEAREST,
