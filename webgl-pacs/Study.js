@@ -78,7 +78,7 @@ class Study {
           for (var j = 0; j < s.width * s.height; j++) {
             // convert signed short to float
             var fv = img[j];
-            texData.push([fv*.2, fv*.2, fv, fv*0.5]);
+            texData.push([fv*.2, fv*.2, fv, fv*0.25]);
           }
         }
         tex.push(twgl.createTexture(gl, {
