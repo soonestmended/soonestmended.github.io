@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Astros on My New Hugo Site</title>
+    <link>http://soonestmended.github.io/astro/</link>
+    <description>Recent content in Astros on My New Hugo Site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 29 Dec 2020 12:19:07 -0800</lastBuildDate>
+    
+	<atom:link href="http://soonestmended.github.io/astro/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Equipment</title>
+      <link>http://soonestmended.github.io/astro/equipment/</link>
+      <pubDate>Tue, 29 Dec 2020 12:19:07 -0800</pubDate>
+      
+      <guid>http://soonestmended.github.io/astro/equipment/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

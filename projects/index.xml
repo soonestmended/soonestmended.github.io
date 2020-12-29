@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on My New Hugo Site</title>
+    <link>http://soonestmended.github.io/projects/</link>
+    <description>Recent content in Projects on My New Hugo Site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 29 Dec 2020 12:19:15 -0800</lastBuildDate>
+    
+	<atom:link href="http://soonestmended.github.io/projects/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Project1</title>
+      <link>http://soonestmended.github.io/projects/project1/</link>
+      <pubDate>Tue, 29 Dec 2020 12:19:15 -0800</pubDate>
+      
+      <guid>http://soonestmended.github.io/projects/project1/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
