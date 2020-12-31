@@ -3,17 +3,27 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>http://soonestmended.github.io/</loc>
+    <lastmod>2020-12-29T12:19:15-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://soonestmended.github.io/projects/project1/</loc>
+    <lastmod>2020-12-29T12:19:15-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://soonestmended.github.io/projects/</loc>
+    <lastmod>2020-12-29T12:19:15-08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://soonestmended.github.io/astro/</loc>
     <lastmod>2020-12-29T12:19:07-08:00</lastmod>
   </url>
   
   <url>
     <loc>http://soonestmended.github.io/astro/equipment/</loc>
-    <lastmod>2020-12-29T12:19:07-08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://soonestmended.github.io/</loc>
     <lastmod>2020-12-29T12:19:07-08:00</lastmod>
   </url>
   
