@@ -19,9 +19,14 @@ body {
     padding-top: 200px;
 }
 
+#list-content {
+    padding-left: 300px;
+    padding-top: 200px;
+}
+
 #nav {
     background: #fff;
     color: #000;
     padding-left: 300px;
-    height: 200px;
+    height: 100px;
 }
