@@ -46,10 +46,11 @@ body {
     float: left;
     text-decoration: none;
     color: #000;
-    border-right: 20px solid white;
-
+    border-right: 5px solid white;
+    margin-right: 50px;
 }
 
 #nav a:hover {
-    border-right: 20px solid red;
+    border-right: 5px solid red;
+    margin-right: 50px;
 }
