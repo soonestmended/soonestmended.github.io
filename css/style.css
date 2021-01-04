@@ -24,14 +24,14 @@ body {
 
 #header {
     height: 100px;
-    background: #00f;
+    background: #fff;
    
 }
 
 #content {
     padding-left: 300px;
     padding-top: 100px;
-    background: #0f0;
+    background: #fff;
 }
 
 a {
@@ -42,7 +42,7 @@ a {
     float: left;
     text-align: right;
     font-size: 20px;
-    background: #f00;
+    background: #fff;
     color: #000;
     padding-left: 50px;
     padding-top: 100px;
