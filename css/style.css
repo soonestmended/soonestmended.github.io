@@ -40,6 +40,7 @@ a {
 
 #left-nav {
     float: left;
+    text-align: right;
     font-size: 20px;
     background: #f00;
     color: #000;
