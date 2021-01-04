@@ -43,13 +43,13 @@ body {
 
 #nav a {
     display: block;
-    float: inline;
+    float: left;
     text-decoration: none;
     color: #000;
-    border-right: 20px white;
+    border-right: 20px solid white;
 
 }
 
 #nav a:hover {
-    border-right: 20px red;
+    border-right: 20px solid red;
 }
