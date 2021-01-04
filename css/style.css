@@ -33,7 +33,7 @@ body {
 }
 
 #nav {
-    font-family: 'share_tech_monoregular';
+    font-family: 'share_tech_monoregular', helvetica;
     background: #0f0;
     color: #000;
     padding-left: 300px;
