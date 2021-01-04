@@ -18,7 +18,7 @@ body {
     max-height: 100%;
     //background: #1a1a1a;
     background: #fff;
-    color: #000;
+    color: #333;
     overflow-y: scroll;
 }
 
@@ -47,6 +47,6 @@ body {
 }
 
 #nav a:hover {
-    border-right: 5px solid gray;
+    text-decoration: underline;
     margin-right: 50px;
 }
