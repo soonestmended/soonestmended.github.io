@@ -36,13 +36,13 @@ a {
     font-size: 16px;
     background: #fff;
     color: #000;
-    padding-left: 20px;
+    padding-left: 50px;
     padding-top: 100px;
+    width: 200px;
 }
 
 #nav a {
     display: block;
-    float: left;
     text-decoration: none;
     color: #000;
     border-right: 5px solid white;
