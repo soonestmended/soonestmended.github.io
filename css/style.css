@@ -28,16 +28,6 @@ body {
    
 }
 
-#content {
-    padding-left: 300px;
-    padding-top: 100px;
-    background: #fff;
-}
-
-a {
-    text-decoration: none;
-}
-
 #left-nav {
     float: left;
     text-align: right;
@@ -48,6 +38,16 @@ a {
     padding-top: 100px;
     width: 200px;
     height: 100%;
+}
+
+#content {
+    padding-left: 300px;
+    padding-top: 100px;
+    background: #fff;
+}
+
+a {
+    text-decoration: none;
 }
 
 #left-nav a {
@@ -63,6 +63,10 @@ a {
     text-decoration: underline;
 }
 
-.summary {
+.list-item-name {
+    font-size: 20px;
+}
+
+.list-item-summary {
     margin-top: 10px;
 }
