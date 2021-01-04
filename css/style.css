@@ -22,7 +22,13 @@ body {
     overflow-y: scroll;
 }
 
-#homepage-content, #list-content {
+#header {
+    height: 100px;
+    background: #00f;
+
+}
+
+#content {
     padding-left: 300px;
     padding-top: 100px;
     background: #0f0;
