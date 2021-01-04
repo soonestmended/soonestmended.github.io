@@ -34,7 +34,7 @@ a {
 #nav {
     float: left;
     font-size: 16px;
-    background: #fff;
+    background: #f00;
     color: #000;
     padding-left: 50px;
     padding-top: 100px;
@@ -45,7 +45,6 @@ a {
     display: block;
     text-decoration: none;
     color: #000;
-    border-right: 5px solid white;
     margin-right: 50px;
 }
 
