@@ -1,7 +1,7 @@
 @font-face {
     font-family: 'share_tech_monoregular';
-    src: url('fonts/sharetechmono-regular-webfont.woff2') format('woff2'),
-         url('fonts/sharetechmono-regular-webfont.woff') format('woff');
+    src: url('../fonts/sharetechmono-regular-webfont.woff2') format('woff2'),
+         url('../fonts/sharetechmono-regular-webfont.woff') format('woff');
     font-weight: normal;
     font-style: normal;
 
