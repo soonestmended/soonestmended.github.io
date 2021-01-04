@@ -50,3 +50,7 @@ body {
     text-decoration: underline;
     margin-right: 50px;
 }
+
+.summary p {
+    margin-top: 10px;
+}
