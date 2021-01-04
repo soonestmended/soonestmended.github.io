@@ -25,6 +25,7 @@ body {
 #homepage-content, #list-content {
     padding-left: 300px;
     padding-top: 100px;
+    background: #0f0;
 }
 
 a {
