@@ -52,7 +52,7 @@ a {
 
 #nav a {
     display: block;
-    width: 200px;
+    clear: both;
     text-decoration: none;
     color: #000;
     margin-bottom: 20px;
