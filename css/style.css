@@ -47,10 +47,12 @@ a {
     padding-left: 50px;
     padding-top: 100px;
     width: 200px;
+    height: 100%;
 }
 
 #nav a {
     display: block;
+    width: 200px;
     text-decoration: none;
     color: #000;
     margin-bottom: 20px;
