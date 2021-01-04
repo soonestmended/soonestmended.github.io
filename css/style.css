@@ -55,7 +55,8 @@ a {
     clear: both;
     text-decoration: none;
     color: #000;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    margin-right: 20px;
 }
 
 #nav a:hover {
