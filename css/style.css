@@ -46,6 +46,6 @@ body {
     color: #000;
 }
 
-#nav a.hover {
+#nav a:hover {
     text-shadow: 2px 2px 4px #000;
 }
