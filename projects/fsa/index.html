@@ -5,7 +5,7 @@
     <link rel="stylesheet" type="text/css" href="/css/style.css">
     
     
-    <title>My New Hugo Site | Blog</title>
+    <title>My New Hugo Site | FSA</title>
 </head>
 <body>
         <div id="header">
@@ -33,11 +33,18 @@
 
 </div>
         <div id="content">
-
+<h1>FSA</h1>
+<br><br>
+<p><script src="/js/processing.min.js"></script>
+<canvas data-processing-sources="/processing/fsa.pde" id="codecanvas"></canvas></p>
+<div id="code-description">
 <p>
-    <a class = "list-item-name" href="/blog/test-post/">Test Post</a>
-    <p class = "list-item-summary"> This is a test post.  Using hugo on github pages. </p>
+A simple implementation of a cellular finite state automaton. The state (black or white) of each square is determined by the state of neighboring squares on the preceding line. For each iteration, a random rule is generated and the first line is initialized with random states.
 </p>
+<p>
+Click to pause.
+</p>
+</div>
 
 
         </div></body>

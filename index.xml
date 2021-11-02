@@ -6,10 +6,29 @@
     <description>Recent content on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 05 Jan 2021 11:07:39 -0800</lastBuildDate>
+    <lastBuildDate>Tue, 05 Jan 2021 11:29:55 -0800</lastBuildDate>
     
 	<atom:link href="http://soonestmended.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>FSA</title>
+      <link>http://soonestmended.github.io/projects/fsa/</link>
+      <pubDate>Tue, 05 Jan 2021 11:29:55 -0800</pubDate>
+      
+      <guid>http://soonestmended.github.io/projects/fsa/</guid>
+      <description> 
+ A simple implementation of a cellular finite state automaton. The state (black or white) of each square is determined by the state of neighboring squares on the preceding line. For each iteration, a random rule is generated and the first line is initialized with random states.  Click to pause.  </description>
+    </item>
+    
+    <item>
+      <title>Wyrm</title>
+      <link>http://soonestmended.github.io/projects/wyrm/</link>
+      <pubDate>Tue, 05 Jan 2021 11:29:55 -0800</pubDate>
+      
+      <guid>http://soonestmended.github.io/projects/wyrm/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>Blank</title>
@@ -44,7 +63,7 @@
       <pubDate>Sun, 27 Dec 2020 20:22:01 -0800</pubDate>
       
       <guid>http://soonestmended.github.io/blog/test-post/</guid>
-      <description></description>
+      <description> This is a test post.  Using hugo on github pages. </description>
     </item>
     
   </channel>
