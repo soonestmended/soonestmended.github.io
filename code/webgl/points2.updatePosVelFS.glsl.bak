@@ -1,0 +1,81 @@
+precision highp float;
+
+uniform float u_time;
+uniform sampler2D u_texPosVel;
+uniform sampler2D u_texColor;
+uniform sampler2D u_texPerlin;
+uniform float u_perlinScale;
+uniform vec2 u_resolution;
+uniform vec2 center;
+
+
+#define Kv 0.003
+#define Kp 0.02
+#define Kg -0.002
+#define EPSILON 0.01
+#define M_TWO_PI 6.28318530718
+
+vec4 wrap(vec4 value) {
+	vec3 val = 0.5*value.xyz+.5;
+	val= mod(val, 1.0);
+	return vec4(2.0*(val-.5), 1.0);
+}
+
+float rand(vec2 co){
+	return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+vec4 bounce(vec4 pv) {
+	if (1.0 - abs(pv.x+Kv*pv.z) < EPSILON) {
+		pv.z = -pv.z;
+	}
+	if (1.0 - abs(pv.y+Kv*pv.w) < EPSILON) {
+		pv.w = -pv.w;
+	}
+	return pv;
+}
+
+float fade (float t) {
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+}
+
+vec2 lerp2D (vec2 v1, vec2 v2, float a) {
+    a = clamp(fade(a), 0.0, 1.0);
+	return a * v1 + (1.0-a) * v2;
+}
+
+vec2 perlin2D(vec2 pos, float scale) {
+    vec2 gridCenter = pos * scale;
+
+    vec2 LL = floor(gridCenter);
+    vec2 UL = LL + vec2(0.0, 1.0);
+    vec2 UR = LL + vec2(1.0, 1.0);
+    vec2 LR = LL + vec2(1.0, 0.0);
+
+    vec2 dot1 = vec2(dot(texture2D(u_texPerlin, LL/scale).xy, gridCenter - LL), dot(texture2D(u_texPerlin, LL/scale).zw, gridCenter - LL));
+    vec2 dot2 = vec2(dot(texture2D(u_texPerlin, UL/scale).xy, gridCenter - UL), dot(texture2D(u_texPerlin, UL/scale).zw, gridCenter - UL));
+    vec2 dot3 = vec2(dot(texture2D(u_texPerlin, UR/scale).xy, gridCenter - UR), dot(texture2D(u_texPerlin, UR/scale).zw, gridCenter - UR));
+    vec2 dot4 = vec2(dot(texture2D(u_texPerlin, LR/scale).xy, gridCenter - LR), dot(texture2D(u_texPerlin, LR/scale).zw, gridCenter - LR));
+
+    return lerp2D(lerp2D(dot3, dot4, fract(gridCenter.y)), lerp2D(dot2, dot1, fract(gridCenter.y)), fract(gridCenter.x));
+}
+
+void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution;
+	vec4 val = texture2D(u_texPosVel, uv);
+    vec4 color = texture2D(u_texColor, uv);
+
+    if (color.w < 0.0005) {
+        // reset to mouse position
+        float angle = rand(uv+u_time) * M_TWO_PI;
+        float radius = .5*rand(uv/u_time);
+        gl_FragColor = vec4(center.x, center.y, radius*cos(angle), radius*sin(angle));
+    }
+    else {
+        // calculate perlin noise vector for current location
+        vec2 pv = perlin2D(val.xy, 64.0) + perlin2D(val.xy, 4.0);
+
+        gl_FragColor = vec4(val.xy + Kv*val.zw, val.zw + Kp * pv + Kg * (val.xy - center));
+    }
+
+}

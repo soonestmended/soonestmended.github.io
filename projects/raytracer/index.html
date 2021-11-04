@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    
+    
+    <title>My New Hugo Site | ray tracer</title>
+</head>
+<body>
+        <div id="header">
+</div>
+        <div id="left-nav">
+<a class = "nav-link" href="/about/">
+  about
+</a>
+
+
+<a class = "nav-link" href="/astro/">
+  astro
+</a>
+
+
+<a class = "nav-link" href="/blog/">
+  blog
+</a>
+
+
+<a class = "nav-link" href="/projects/">
+  projects
+</a>
+
+
+</div>
+        <div id="content">
+<h1>ray tracer</h1>
+<br><br>
+<div id="main">
+<p><canvas id="c" width="800" height="800"></canvas>
+<div id="statsline1" style="position: absolute; bottom: 50px; left: 20px; background: rgba(0, 0, 0, .5);">Loading model&hellip; </div>
+<div id="statsline2" style="position: absolute; bottom: 30px; left: 20px; background: rgba(0, 0, 0, .5);"> </div></p>
+<script src="/code/webgl/js/libs/twgl-full.js"></script>
+<script src="/code/webgl/js/libs/jszip.js"></script>
+<script src="/code/js/file-saver/dist/FileSaver.js"></script>
+<script src="/code/webgl/BVH.js"></script>
+<script src="/code/webgl/Scene.js"></script>
+<script src="/code/webgl/q1.js"></script>
+<p><div>
+    <a href='?model=airplane.ply
+'>airplane</a> |
+    <a href='?model=sphere
+'>sphere</a> |
+    <a href='?model=bunny_normals.ply
+'>bunny</a> |
+    <a href='?model=teapot.ply
+'>teapot</a>
+</div>
+material:
+<select id="material-selector" onchange="changeMaterial()">
+  <option value="diffuse">diffuse</option>
+  <option selected="selected" value="mirror">mirror</option>
+  <option value="glass">glass</option>
+  <option value="conductor">gold</option>
+  <option value="oren-nayar">oren nayar</option>
+</select></p>
+</div>
+
+
+        </div></body>
+</html>

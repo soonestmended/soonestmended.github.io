@@ -1,0 +1,689 @@
+#version 300 es
+precision highp float;
+precision highp sampler2D;
+precision highp sampler3D;
+precision highp usampler3D;
+
+#define EPS 0.00001
+#define M_PI 3.14159265359
+#define M_TWO_PI 6.28318530718
+#define BVH_STACK_SIZE 64
+
+#define PURE_DIFFUSE 0.0
+#define PURE_SPECULAR 1.0
+#define DIELECTRIC 2.0
+#define CONDUCTOR 3.0
+#define OREN_NAYAR 4.0
+#define DIFFUSE_SPEC_SHIRLEY 5.0
+
+uniform int u_numTris;
+uniform int u_numLights;
+uniform uint u_pass;
+uniform sampler2D u_texMaterials;
+uniform sampler2D u_texLights;
+uniform sampler2D u_texBlendWith;
+uniform sampler3D u_texObjects;
+uniform usampler3D u_texBVH;
+uniform mat4 u_imagePlane;
+uniform uvec4 u_seed[3];
+uniform float u_time;
+uniform float u_sampleWeight;
+
+in vec4 ray_target;
+in vec2 texCoord;
+in vec2 v_pointSize;
+out vec4 color;
+
+float ds = 1.0 / 2048.0;
+
+struct RandomResult {
+    uvec4 state;
+    float value;
+};
+
+struct IntersectRec {
+    vec4 P;
+    vec4 N;
+    vec2 bg;
+    vec2 uv;
+    float t;
+    uint index;
+    int materialIndex;
+};
+
+struct Triangle {
+    vec3 p;
+    vec3 e1;
+    vec3 e2;
+
+    vec3 np;
+    vec3 nq;
+    vec3 nr;
+
+    vec2 uvp;
+    vec2 uvq;
+    vec2 uvr;
+
+    int materialIndex;
+};
+
+struct BVHNode {
+    vec3 min;
+    vec3 max;
+    uvec2 d;
+};
+
+struct Material {
+    vec3 diffuse;
+    vec3 specular;
+    vec3 transmission;
+    vec3 emission;
+    float type;
+    vec3 data;
+};
+
+struct Light {
+    vec3 p;
+    vec3 q;
+    vec3 r;
+    vec3 np;
+    vec3 nq;
+    vec3 nr;
+    vec3 color;
+    float area;
+};
+
+void wang_hash(inout uvec4 seed)
+{
+    seed = (seed ^ 61u) ^ (seed >> 16);
+    seed *= 9u;
+    seed = seed ^ (seed >> 4);
+    seed *= 0x27d4eb2du;
+    seed = seed ^ (seed >> 15);
+}
+
+uvec3 TausStep(uvec3 z, uvec3 S1, uvec3 S2, uvec3 S3, uvec3 M) {
+    uvec3 b = (((z << S1) ^ z) >> S2);
+    return (((z & M) << S3) ^ b);
+}
+
+uint LCGStep(uint z, uint A, uint C) {
+    return A * z + C;
+}
+
+void rand_xorshift(inout uint rng_state)
+{
+    // Xorshift algorithm from George Marsaglia's paper
+    rng_state ^= (rng_state << 13);
+    rng_state ^= (rng_state >> 17);
+    rng_state ^= (rng_state << 5);
+}
+
+float rand(inout uvec4 state) {
+    //state.xyz = TausStep(state.xyz, uvec3(13u, 2u, 3u), uvec3(19, 25, 11), uvec3(12, 4, 17), uvec3(4294967294u, 4294967288, 4294967280));
+    //state.w = LCGStep(state.w, 1664525u, 1013904223u);
+    //return 2.3283064365387e-10 * float(state.x ^ state.y ^ state.z ^ state.w);
+    rand_xorshift(state.x);
+    return 2.3283064365387e-10 * float(state.x); // ^ state.y ^ state.z ^ state.w);
+}
+
+
+bool intersectBBox(in vec4 ro, in vec4 invrd, in vec3 bbmin, in vec3 bbmax, float farthest) {
+    vec3 minInterval = (bbmin - ro.xyz) * invrd.xyz;
+    vec3 maxInterval = (bbmax - ro.xyz) * invrd.xyz;
+    
+    vec3 a = min(minInterval.xyz, maxInterval.xyz);
+    vec3 b = max(minInterval.xyz, maxInterval.xyz);
+
+    float tmin = max(max(a.x, a.y), a.z); 
+    float tmax = min(min(b.x, b.y), b.z);
+
+    return (farthest > tmin) && (tmin <= tmax) && (tmax >= 0.0);    
+}
+
+bool intersectSphere(in vec4 ro, in vec4 rd, out IntersectRec ir) {
+    float a = dot(rd.xyz, rd.xyz);
+    float b = 2.0 * dot(rd.xyz, ro.xyz);
+    float c = dot(ro.xyz, ro.xyz) - 1.0;
+    float d = b*b - 4.0 * a * c;
+    if (d >= 0.0) {
+        float hit = (-b - sqrt(d)) / (2.0 * a);
+        ir.t = hit;
+        ir.P = ir.N = ro + rd * hit;
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool intersectTriangle(in vec4 ro, in vec4 rd, in float tmin, in float tmax, in vec3 v0, in vec3 e1, in vec3 e2, out IntersectRec ir) {
+    //vec3 e1 = v1 - v0;
+    //vec3 e2 = v2 - v0;
+    vec3 pvec = cross(rd.xyz, e2);
+    float det = dot(e1, pvec);
+    if (abs(det) < EPS) return false;
+
+    float invDet = 1.0 / det;
+    vec3 tvec = ro.xyz - v0;
+    ir.bg.x = dot(tvec, pvec) * invDet;
+    if (ir.bg.x < 0.0 || ir.bg.x > 1.0) return false;
+
+    vec3 qvec =cross(tvec, e1);
+    ir.bg.y = dot(rd.xyz, qvec) * invDet;
+    if (ir.bg.y < 0.0 || (ir.bg.x+ir.bg.y > 1.0)) return false;
+
+    ir.t = dot(e2, qvec) * invDet;
+    if (ir.t < tmin || ir.t > tmax) return false;
+
+    ir.P = ro + ir.t * rd;
+    return true;
+}
+
+bool intersectTriangleYN(in vec4 ro, in vec4 rd, in float tmin, in float tmax, in vec3 v0, in vec3 e1, in vec3 e2) {
+    //vec3 e1 = v1 - v0;
+    //vec3 e2 = v2 - v0;
+    vec2 bg;
+    vec3 pvec = cross(rd.xyz, e2);
+    float det = dot(e1, pvec);
+    if (abs(det) < EPS) return false;
+
+    float invDet = 1.0 / det;
+    vec3 tvec = ro.xyz - v0;
+    bg.x = dot(tvec, pvec) * invDet;
+    if (bg.x < 0.0 || bg.x > 1.0) return false;
+
+    vec3 qvec =cross(tvec, e1);
+    bg.y = dot(rd.xyz, qvec) * invDet;
+    if (bg.y < 0.0 || (bg.x+bg.y > 1.0)) return false;
+
+    float t = dot(e2, qvec) * invDet;
+    return (t > tmin && t < tmax);
+}
+
+ivec2 children(int nodeID, BVHNode node, ivec3 rayBits) {
+    int axis = int(node.d.x >> 30);
+    //if (axis == 3) return ivec2(-1);
+    ivec2 ans = ivec2(nodeID + 1, node.d.x & 1073741823u);
+    return ivec2(ans[rayBits[axis]], ans[1-rayBits[axis]]);
+}
+
+uvec2 leafStartNum(BVHNode node) {
+   //return ivec2(int(node.d.x), int(node.d.y & 536870911u)); // = 0x1FFFFFFF 
+    return uvec2(node.d.x, node.d.y & 536870911u); // = 0x1FFFFFFF 
+}
+
+bool isLeaf(BVHNode node) {
+    uint bits = node.d.y >> 30;
+    return (bits == 3u);
+}
+
+vec2 materialIndexToTexCoords(int index) {
+    index = index * 4;
+    int j = index / 256;
+    int i = index - j * 256;
+    return vec2(float(i) * (1.0/256.0), float(j) * (1.0/256.0));
+}
+
+vec2 lightIndexToTexCoords(int index) {
+    index = index * 8;
+    int j = index / 256;
+    int i = index - j * 256;
+    return vec2(float(i) * (1.0/256.0), float(j) * (1.0/256.0));
+}
+
+Material fetchMaterialFromTex(int index) {
+    vec2 tc = materialIndexToTexCoords(index);
+    float dms = 1.0 / 256.0;
+    
+    vec4 d1 = textureLod(u_texMaterials, tc, 0.0);
+    vec4 d2 = textureLod(u_texMaterials, vec2(tc.s+dms, tc.t), 0.0);
+    vec4 d3 = textureLod(u_texMaterials, vec2(tc.s+2.f*dms, tc.t), 0.0);
+    vec4 d4 = textureLod(u_texMaterials, vec2(tc.s+3.f*dms, tc.t), 0.0);
+
+    return Material(d1.xyz, vec3(d1.w, d2.xy), vec3(d2.zw, d3.x), d3.yzw, d4.x, d4.yzw);
+}
+
+Light fetchLightFromTex(int index) {
+    vec2 tc = lightIndexToTexCoords(index); 
+    float dms = 1.0 / 256.0;
+    
+    vec4 d1 = textureLod(u_texLights, tc, 0.0);
+    vec4 d2 = textureLod(u_texLights, vec2(tc.s+dms, tc.t), 0.0);
+    vec4 d3 = textureLod(u_texLights, vec2(tc.s+2.f*dms, tc.t), 0.0);
+    vec4 d4 = textureLod(u_texLights, vec2(tc.s+3.f*dms, tc.t), 0.0);
+    vec4 d5 = textureLod(u_texLights, vec2(tc.s+4.f*dms, tc.t), 0.0);
+    vec4 d6 = textureLod(u_texLights, vec2(tc.s+5.f*dms, tc.t), 0.0);
+
+    return Light(d1.xyz, vec3(d1.w, d2.xy), vec3(d2.zw, d3.x), d3.yzw, d4.xyz, vec3(d4.w, d5.xy), vec3(d5.zw, d6.x), d6.y);
+}
+
+vec3 BVHNodeIndexToTexCoords(int index) {
+    index = index * 2;
+    int k = index / (2048*2048);
+    int j = (index - k*2048*2048) / 2048;
+    int i = index - k*2048*2048 - j*2048;
+    return vec3(float(i) * ds, float(j) * ds, float(k) * ds);
+}
+
+BVHNode fetchBVHNodeFromTex(int index) {
+    vec3 tc = BVHNodeIndexToTexCoords(index);
+    uvec4 d1 = textureLod(u_texBVH, tc, 0.0);
+    uvec4 d2 = textureLod(u_texBVH, vec3(tc.s+ds, tc.t, tc.r), 0.0);
+    BVHNode ans;
+    ans.min = uintBitsToFloat(d1.xyz);
+    ans.max = uintBitsToFloat(uvec3(d1.w, d2.xy));
+    ans.d = d2.zw;
+    return ans;
+}
+
+vec3 triIndexToTexCoords(uint index) {
+    index *= 8u;
+    uint k = index / (2048u*2048u);
+    uint j = (index - k*2048u*2048u) / 2048u;
+    uint i = index - k*2048u*2048u - j*2048u;
+    return vec3(float(i) * ds, float(j) * ds, float(k) * ds);
+}
+
+Triangle fetchTriFromTex(uint index) {
+    vec3 tc = triIndexToTexCoords(index);
+    vec4 d1 = textureLod(u_texObjects, tc, 0.0);
+    vec4 d2 = textureLod(u_texObjects, vec3(tc.s+ds, tc.t, tc.r), 0.0);
+    vec4 d3 = textureLod(u_texObjects, vec3(tc.s+2.f*ds, tc.t, tc.r), 0.0);
+    //vec4 d4 = textureLod(u_texObjects, vec3(tc.s+3.f*ds, tc.t, tc.r), 0.0);
+    //vec4 d5 = textureLod(u_texObjects, vec3(tc.s+4.f*ds, tc.t, tc.r), 0.0);
+    //vec4 d6 = textureLod(u_texObjects, vec3(tc.s+5.f*ds, tc.t, tc.r), 0.0);
+    //vec4 d7 = textureLod(u_texObjects, vec3(tc.s+6.f*ds, tc.t, tc.r), 0.0);
+
+    Triangle ans;
+
+    ans.p = d1.xyz;
+    ans.e1 = vec3(d1.w, d2.xy);
+    ans.e2 = vec3(d2.zw, d3.x);
+
+    //ans.np = d3.yzw;
+    //ans.nq = d4.xyz;
+    //ans.nr = vec3(d4.w, d5.xy);
+
+    //ans.uvp = d5.zw;
+    //ans.uvq = d6.xy;
+    //ans.uvr = d6.zw;
+
+    //ans.materialIndex = int(d7.x);
+
+    return ans;
+}
+
+void finishIntersectRec(inout IntersectRec ir) {
+
+    vec3 tc = triIndexToTexCoords(ir.index);
+    vec4 d3 = textureLod(u_texObjects, vec3(tc.s+2.f*ds, tc.t, tc.r), 0.0);
+    vec4 d4 = textureLod(u_texObjects, vec3(tc.s+3.f*ds, tc.t, tc.r), 0.0);
+    vec4 d5 = textureLod(u_texObjects, vec3(tc.s+4.f*ds, tc.t, tc.r), 0.0);
+    vec4 d6 = textureLod(u_texObjects, vec3(tc.s+5.f*ds, tc.t, tc.r), 0.0);
+    vec4 d7 = textureLod(u_texObjects, vec3(tc.s+6.f*ds, tc.t, tc.r), 0.0);
+
+    ir.N = vec4(vec3(ir.bg.x * d4.xyz + ir.bg.y * vec3(d4.w, d5.xy) + (1.0f - ir.bg.x - ir.bg.y) * d3.yzw), 0.0);
+
+    ir.uv = ir.bg.x * d5.zw + ir.bg.y * d6.xy + (1.0f - ir.bg.x - ir.bg.y) * d6.zw;
+
+    ir.materialIndex = int(d7.x);
+
+}
+
+bool BVHIntersect(vec4 ro, vec4 rd, out IntersectRec bestir) {
+    vec4 invrd = vec4(1.0) / rd;
+    ivec3 rayBits = ivec3(rd.x > 0.0, rd.y > 0.0, rd.z > 0.0);
+    
+    bestir.t = 999999.0;
+    bool hit = false;
+
+    int stack[BVH_STACK_SIZE];
+    int stackptr = 0;
+
+    stack[stackptr++] = 0;
+
+    while (stackptr > 0 && stackptr < BVH_STACK_SIZE) {
+        int current = stack[--stackptr];
+        BVHNode node = fetchBVHNodeFromTex(current);
+        if (intersectBBox(ro, invrd, node.min, node.max, bestir.t)) {
+            if (isLeaf(node)) {
+                uvec2 startNum = leafStartNum(node);
+                for (uint j = startNum.x; j < startNum.x+startNum.y; j++) {
+                    Triangle tri = fetchTriFromTex(j);
+                    IntersectRec tir;
+                    if (intersectTriangle(ro, rd, EPS, bestir.t, tri.p, tri.e1, tri.e2, tir)) {
+                        hit = true;
+                        bestir = tir;
+                        bestir.index = j;
+                        //bestir.P = ro + rd*bestir.t;
+                        //bestir.N = vec4(vec3(bestir.uv.x * tri.nq + bestir.uv.y * tri.nr + (1.0f - bestir.uv.x - bestir.uv.y) * tri.np), 0.0);
+                        //bestir.materialIndex = tri.materialIndex;
+                    }
+                }
+            }
+            else {
+                ivec2 nearFar = children(current, node, rayBits);
+                stack[stackptr++] = nearFar.y;
+                stack[stackptr++] = nearFar.x;
+            }
+        }
+    }
+    finishIntersectRec(bestir);
+    bestir.P = ro + rd*bestir.t;
+
+    return hit;
+}
+
+bool BVHIntersectYN(vec4 ro, vec4 rd, float tmax) {
+    vec4 invrd = vec4(1.0) / rd;
+    ivec3 rayBits = ivec3(rd.x > 0.0, rd.y > 0.0, rd.z > 0.0);
+    
+//    bestir.t = tmax;
+    bool hit = false;
+
+    int stack[BVH_STACK_SIZE];
+    int stackptr = 0;
+
+    stack[stackptr++] = 0;
+
+    while (stackptr > 0 && stackptr < BVH_STACK_SIZE) {
+        int current = stack[--stackptr];
+        BVHNode node = fetchBVHNodeFromTex(current);
+        if (intersectBBox(ro, invrd, node.min, node.max, tmax)) {
+            if (isLeaf(node)) {
+                uvec2 startNum = leafStartNum(node);
+                for (uint j = startNum.x; j < startNum.x+startNum.y; j++) {
+                    Triangle tri = fetchTriFromTex(j);
+                    if (intersectTriangleYN(ro, rd, EPS, tmax, tri.p, tri.e1, tri.e2)) {
+                        return true;
+                        //bestir.P = ro + rd*bestir.t;
+                        //bestir.N = vec4(vec3(bestir.uv.x * tri.nq + bestir.uv.y * tri.nr + (1.0f - bestir.uv.x - bestir.uv.y) * tri.np), 0.0);
+                        //bestir.materialIndex = tri.materialIndex;
+                    }
+                }
+            }
+            else {
+                ivec2 nearFar = children(current, node, rayBits);
+                stack[stackptr++] = nearFar.y;
+                stack[stackptr++] = nearFar.x;
+            }
+        }
+    }
+    return false;
+}
+
+vec3 diffuseReflect(vec3 wi, vec3 W, inout uvec4 state1, inout uvec4 state2) {
+    vec3 U;
+    if (abs(W.x) > abs(W.y)) {
+        float invLen = 1.0 / sqrt(W.x*W.x+W.z*W.z);
+        U = vec3(-W.z*invLen, 0.0, W.x*invLen);
+    }
+    else {
+        float invLen = 1.0 / sqrt(W.y*W.y + W.z*W.z);
+        U = vec3(0.0, W.z*invLen, -W.y*invLen);
+    }
+    vec3 V = cross(W, U);
+
+    float r1 = rand(state1);
+    float r2 = rand(state1);
+    
+    float cosTheta = sqrt(1.0 - r1);
+    float phi = M_TWO_PI * r2;
+    float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
+    float sinPhi = sin(phi);
+    float cosPhi = cos(phi);
+
+    return cosPhi * sinTheta * U + sinPhi * sinTheta * V + cosTheta * W;
+}
+
+void getRandomPointOnLight(Light l, inout vec3 lightPoint, inout vec3 lightNormal, inout uvec4 state) {
+    float r1 = rand(state);
+    float r2 = rand(state);
+    float sqrtr1 = sqrt(r1);
+    vec3 C = vec3(1.0 - sqrtr1, sqrtr1 * (1.0 - r2), r2 * sqrtr1);
+    lightPoint = C.x * l.p + C.y * l.q + C.z * l.r;
+    lightNormal = C.x * l.np + C.y * l.nq + C.z * l.nr;
+    //lightPoint += 0.001 * lightNormal;
+}
+
+vec3 larBVH2(vec4 ro, vec4 rd, inout uvec4 state1, inout uvec4 state2) {
+    vec3 frac = vec3(1.0);
+    vec3 ans = vec3(0.0);
+    int rayBounce = 0;
+    do {
+        IntersectRec ir;
+        if (BVHIntersect(ro, rd, ir)) {
+            Material mat = fetchMaterialFromTex(ir.materialIndex);
+
+            ans += frac * mat.emission; // count emissive component
+
+            rayBounce++;
+
+            if (rayBounce == 4 || length(frac) < .01) break;
+
+            ro = ir.P; // ray origin for next bounce is intersection point
+
+            rd.xyz =  diffuseReflect(rd.xyz, ir.N.xyz, state1, state2); // get reflected direction for next bounce
+            //rd.xyz = vec3(300.0, 548.8, 300.0) - ir.P.xyz;
+            rd.xyz /= length(rd.xyz);
+            ro.xyz += ir.N.xyz*.001;
+            frac *= mat.diffuse * M_PI; 
+        } else {
+            break;
+        }
+    } while (true);
+
+    return ans;
+}
+
+vec3 EDL(IntersectRec ir, Material mat, inout uvec4 state) {
+    // randomly choose a light to sample
+    int lightIndex = int(floor(rand(state) * float(u_numLights)));
+    Light l = fetchLightFromTex(lightIndex);
+
+    // generate ray to random point on that light
+    vec3 lightPoint, lightNormal;
+    getRandomPointOnLight(l, lightPoint, lightNormal, state);
+    vec3 rdToLight = lightPoint - ir.P.xyz;
+    float lightDist = length(rdToLight);
+    rdToLight /= lightDist;
+
+    ir.P.xyz += rdToLight.xyz * .001;
+
+    // trace ray
+    if (BVHIntersectYN(ir.P, vec4(rdToLight, 1.0), lightDist - .1)) return vec3(0.0);
+
+    // compute contribution
+    return l.color * (l.area / (lightDist*lightDist)) * dot(lightNormal, -rdToLight) * dot(ir.N.xyz, rdToLight);
+
+}
+
+vec3 larBVHEDL(vec4 ro, vec4 rd, inout uvec4 state1, inout uvec4 state2) {
+    vec3 frac = vec3(1.0);
+    vec3 ans = vec3(0.0);
+    vec3 EDLpart = vec3(0.0);
+    int rayBounce = 0;
+    IntersectRec ir;
+    bool CEL = true; //vec3(1.0);
+    // first intersection in scene
+    
+
+
+    // trace shadow ray from intersection surface
+    // rake ray to light for now
+
+
+    // 
+    do {
+
+        if (rayBounce == 4 || !BVHIntersect(ro, rd, ir)) break;
+        
+        Material mat = fetchMaterialFromTex(ir.materialIndex);
+        frac *= .5 * mat.diffuse * M_PI; // weight reflected ray by .5
+        
+        ans += .5 * frac * EDL(ir, mat, state1) * dot(-rd.xyz, ir.N.xyz); // weight EDL ray by .5
+        if (CEL) {
+            ans += frac * mat.emission; // if we're counting emitted light
+            CEL = false; // turn off count emitted light -- will be used again once specular surfaces implemented
+        }
+
+        ro = ir.P; // ray origin for next bounce is intersection point
+        rd.xyz =  diffuseReflect(rd.xyz, ir.N.xyz, state1, state1); // get reflected direction for next bounce
+        //rd.xyz = vec3(300.0, 548.8, 300.0) - ir.P.xyz;
+        rd.xyz /= length(rd.xyz);
+        ro.xyz += ir.N.xyz*.001;
+
+        rayBounce++;
+
+    } while (true);
+
+    return ans;
+}
+/*
+float oren_nayar_brdf(vec3 wo, out vec3 wi, IntersectRec ir, Material mat, inout uvec4 state) {
+    // this should all be done in the coordinate system with ir.N = 0, 0, 1
+    // then transformed at the end
+    wi = diffuseReflect(wi, ir.N.xyz, state, state);
+    float cosThetaI = dot(wi, ir.N);
+    float sinThetaI = max(0.0, 1.0 - cosThetaI*cosThetaI);
+    float cosThetaO = dot(wo, ir.N);
+    float sinThetaO = max(0.0, 1.0 - cosThetaO*cosThetaO);
+
+
+}
+*/
+vec3 larBVHEDL2(vec4 ro, vec4 rd, inout uvec4 state1, inout uvec4 state2) {
+    vec3 frac = vec3(1.0);
+    vec3 ans = vec3(0.0);
+    vec3 EDLpart = vec3(0.0);
+    int rayBounce = 0;
+    IntersectRec ir;
+    bool CEL = true; //vec3(1.0);
+    // 
+    do {
+
+        if (rayBounce == 4 || !BVHIntersect(ro, rd, ir)) break;
+        Material mat = fetchMaterialFromTex(ir.materialIndex);
+        vec3 wo = -rd.xyz;
+
+        if (mat.type == PURE_DIFFUSE) {
+            frac *= mat.diffuse;
+            ans += .5 * frac * EDL(ir, mat, state1) * dot(wo, ir.N.xyz); // add EDL component, weighted by .5
+
+            frac *= .5 * M_PI; // weight reflected ray by .5
+            
+            if (CEL) {
+                ans += frac * mat.emission; // if we're counting emitted light
+                CEL = false; // turn off count emitted light -- will be used again once specular surfaces implemented
+            }
+
+            ro = ir.P; // ray origin for next bounce is intersection point
+            rd.xyz =  diffuseReflect(rd.xyz, ir.N.xyz, state1, state1); // get reflected direction for next bounce
+            //rd.xyz = vec3(300.0, 548.8, 300.0) - ir.P.xyz;
+            rd.xyz /= length(rd.xyz);
+            ro.xyz += ir.N.xyz*.001;
+        }
+        else if (mat.type == PURE_SPECULAR) {
+            // do specular stuph
+            rd.xyz = rd.xyz - ir.N.xyz * dot(ir.N.xyz, rd.xyz) * 2.0f;
+            rd.xyz /= length(rd.xyz);
+            ro.xyz = ir.P.xyz + ir.N.xyz * .001;
+            frac *= mat.specular;
+            CEL = true; // count emitted light for next bounce
+        }
+        else if (mat.type == DIELECTRIC) {
+             // compute Fresnel term
+             
+            // trace reflected ray with probability F
+
+            // trace transmitted ray with probability 1 - F
+        }
+        else if (mat.type == CONDUCTOR) {
+
+        }
+        else if (mat.type == OREN_NAYAR) {
+            // start by multiplying in material color and calculating EDL
+            frac *= mat.diffuse;
+            ans += .5 * frac * EDL(ir, mat, state1) * dot(wo, ir.N.xyz); // add EDL component, weighted by .5
+
+            //frac *= oren_nayar(wo, rd.xyz, ir, mat, state1);
+            // use cosine sampling for next ray
+
+
+        }
+        else if (mat.type == DIFFUSE_SPEC_SHIRLEY) {
+
+        }
+        /*
+        else if (mat.type == PHONG_METAL) {
+            CEL = true;
+            float phi = 2.0 * M_PI * rand(state1);
+            float r2 = rand(state1);
+            float cosTheta = pow(1.0 - r2, 1.0 / (mat.data.x + 1.0));
+            float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+
+            vec3 W = rd.xyz - ir.N.xyz * dot(ir.N.xyz, rd.xyz) * 2.0f;
+            vec3 U = cross((abs(W.x) > .1 ? vec3(0, 1, 0) : vec3(1, 0, 0)), W);
+            U = U / length(U);
+            vec3 V = cross(W, U);
+
+            rd.xyz = U * cos(phi) * sinTheta + V * sin(phi) * sinTheta + W * cosTheta;
+            rd.xyz /= length(rd.xyz);
+            ro.xyz = ir.P.xyz + ir.N.xyz * .001;
+
+            frac *= mat.specular;
+
+        }
+        */
+
+        rayBounce++;
+
+    } while (true);
+
+    return ans;
+}
+
+vec3 lar(vec4 ro, vec4 rd) {
+    IntersectRec bestir;
+    bestir.t = 99999.0;
+    // loop through all triangles in objects texture, keep closest hit.
+    bool hit = false;
+    for (uint i = 0u; i < uint(u_numTris); i++) {
+        Triangle tri = fetchTriFromTex(i);
+        IntersectRec tir;
+
+        if (intersectTriangle(ro, rd, EPS, bestir.t, tri.p, tri.e1, tri.e2, tir)) {
+            hit = true;
+            bestir = tir;
+            bestir.N = vec4(vec3(bestir.uv.x * tri.np + bestir.uv.y * tri.nq + (1.0f - bestir.uv.x - bestir.uv.y) * tri.nr), 0.0);
+            //bestir.N = vec4(.4+tc.s*8.0, 0.0, 0.0, 0.0);
+        }
+    }
+
+    if (hit) {
+        return abs(bestir.N.xyz);
+        //return vec3(1.0, 0.0, 0.0);
+    }
+    else {
+        return vec3(0.0);
+    }
+}
+
+void main() {    
+  uvec4 local_seed1 = u_seed[0] + floatBitsToUint(vec4(normalize(ray_target.xy), -normalize(ray_target.yx))) * uvec4(u_pass);
+  //uvec4 local_seed2 = u_seed[1] + floatBitsToUint(-normalize(ray_target)) + uvec4(u_pass);
+  wang_hash(local_seed1);
+  vec4 rt = ray_target + (rand(local_seed1) - .5) * (1.0/800.0) * u_imagePlane[1] + (rand(local_seed1) - .5) * (1.0/800.0) * u_imagePlane[0];
+  vec4 eye = u_imagePlane[3];
+  vec4 rd = normalize(rt - eye);
+
+
+
+  color = vec4(0.0, 0.0, 0.0, 1.0);
+  
+      //for (int i = 0; i < numSamples; i++) {
+  color.xyz = (u_sampleWeight * larBVHEDL2(eye, rd, local_seed1, local_seed1)) + ((1.0 - u_sampleWeight) * texture(u_texBlendWith, texCoord).xyz);
+    //color.xyz = larBVH2(eye, rd, local_seed1, local_seed2);
+      //color.w=1.0;
+  }
