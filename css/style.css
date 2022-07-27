@@ -88,6 +88,10 @@ td {
     padding: 5px;
 }
 
+thead th {
+    text-align: left;
+}
+
 thead th:nth-child(1) {
   width: 40%;
 }
@@ -102,4 +106,13 @@ thead th:nth-child(3) {
 
 thead th:nth-child(4) {
   width: 15%;
+}
+
+tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+caption {
+    padding: 5px;
+    text-transform: capitalize;
 }
