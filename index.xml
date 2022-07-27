@@ -6,18 +6,29 @@
     <description>Recent content on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 19 Jul 2022 20:55:28 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 25 Jul 2022 11:55:46 -0700</lastBuildDate>
     
 	<atom:link href="http://soonestmended.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>Webgpu Tutorial</title>
+      <link>http://soonestmended.github.io/projects/webgpu-tutorial/</link>
+      <pubDate>Mon, 25 Jul 2022 11:55:46 -0700</pubDate>
+      
+      <guid>http://soonestmended.github.io/projects/webgpu-tutorial/</guid>
+      <description>
+ </description>
+    </item>
+    
+    <item>
       <title>Activities</title>
       <link>http://soonestmended.github.io/projects/activities/</link>
-      <pubDate>Tue, 19 Jul 2022 20:55:28 +0000</pubDate>
+      <pubDate>Sun, 24 Jul 2022 19:40:41 +0000</pubDate>
       
       <guid>http://soonestmended.github.io/projects/activities/</guid>
-      <description>2022-07-19 06:39:57-07:00: Ride 640.9kj  2022-07-16 10:30:27-07:00: Walk Nonekj  2022-07-14 06:41:09-07:00: Ride 650.0kj  2022-07-13 17:17:43-07:00: Walk Nonekj  2022-07-12 06:35:05-07:00: Ride 649.1kj  2022-07-09 06:21:16-07:00: Ride 633.2kj  2022-07-07 06:44:49-07:00: Ride 639.3kj  2022-07-02 14:32:22-07:00: Ride 1244.1kj  2022-06-30 06:47:32-07:00: Ride 640.5kj  2022-06-28 06:33:18-07:00: Run Nonekj  2022-06-21 12:17:05-07:00: Walk Nonekj  2022-06-11 15:53:05-07:00: Ride 653.3kj  2022-06-10 06:37:13-07:00: Ride 648.9kj  2022-06-08 11:30:11-07:00: Ride 658.4kj  2022-06-04 12:52:41-07:00: Ride 873.</description>
+      <description>2022 July - total 8552 kCal
+ 2022-07-24 Sun: 82 min Workout 1237.0 kCal  2022-07-23 Sat: 60 min Ride 854.4 kCal  2022-07-21 Thu: 45 min Ride 642.0 kCal  2022-07-20 Wed: 36 min Walk 347.1 kCal  2022-07-19 Tue: 45 min Ride 640.9 kCal  2022-07-16 Sat: 80 min Walk 631.6 kCal  2022-07-14 Thu: 45 min Ride 650.0 kCal  2022-07-13 Wed: 40 min Walk 383.4 kCal  2022-07-12 Tue: 45 min Ride 649.</description>
     </item>
     
     <item>
