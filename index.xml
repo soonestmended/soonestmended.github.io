@@ -6,10 +6,20 @@
     <description>Recent content on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 25 Jul 2022 11:55:46 -0700</lastBuildDate>
+    <lastBuildDate>Wed, 27 Jul 2022 11:14:02 +0000</lastBuildDate>
     
 	<atom:link href="http://soonestmended.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Activities</title>
+      <link>http://soonestmended.github.io/projects/activities/</link>
+      <pubDate>Wed, 27 Jul 2022 11:14:02 +0000</pubDate>
+      
+      <guid>http://soonestmended.github.io/projects/activities/</guid>
+      <description>2022 July - total 9008 kCal
+ 2022-07-26 Tue: 35 min WeightTraining 156.0 kCal  2022-07-25 Mon: 30 min Workout 300.0 kCal  2022-07-24 Sun: 82 min Workout 1237.0 kCal  2022-07-23 Sat: 60 min Ride 854.4 kCal  2022-07-21 Thu: 45 min Ride 642.0 kCal  2022-07-20 Wed: 36 min Walk 347.1 kCal  2022-07-19 Tue: 45 min Ride 640.9 kCal  2022-07-16 Sat: 80 min Walk 631.6 kCal  2022-07-14 Thu: 45 min Ride 650.</description>
+    </item>
     
     <item>
       <title>Webgpu Tutorial</title>
@@ -19,16 +29,6 @@
       <guid>http://soonestmended.github.io/projects/webgpu-tutorial/</guid>
       <description>
  </description>
-    </item>
-    
-    <item>
-      <title>Activities</title>
-      <link>http://soonestmended.github.io/projects/activities/</link>
-      <pubDate>Sun, 24 Jul 2022 19:40:41 +0000</pubDate>
-      
-      <guid>http://soonestmended.github.io/projects/activities/</guid>
-      <description>2022 July - total 8552 kCal
- 2022-07-24 Sun: 82 min Workout 1237.0 kCal  2022-07-23 Sat: 60 min Ride 854.4 kCal  2022-07-21 Thu: 45 min Ride 642.0 kCal  2022-07-20 Wed: 36 min Walk 347.1 kCal  2022-07-19 Tue: 45 min Ride 640.9 kCal  2022-07-16 Sat: 80 min Walk 631.6 kCal  2022-07-14 Thu: 45 min Ride 650.0 kCal  2022-07-13 Wed: 40 min Walk 383.4 kCal  2022-07-12 Tue: 45 min Ride 649.</description>
     </item>
     
     <item>
