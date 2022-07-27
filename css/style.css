@@ -108,8 +108,8 @@ thead th:nth-child(4) {
   width: 15%;
 }
 
-tr:nth-child(odd) {
-    background-color: #ccc;
+tr:nth-child(even) {
+    background-color: #eee;
 }
 
 caption {
