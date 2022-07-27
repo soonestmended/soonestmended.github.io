@@ -113,6 +113,6 @@ tr:nth-child(even) {
 }
 
 caption {
-    padding: 5px;
-    text-transform: capitalize;
+    padding: 10px;
+    font-size: 14pt;
 }
